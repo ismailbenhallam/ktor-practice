@@ -1,0 +1,40 @@
+POST http://0.0.0.0:8080/persons
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "id": "214647b5-4d3e-4d84-b276-e4a899cddc71"
+}
+
+###
+POST http://0.0.0.0:8080/persons
+Content-Type: application/json
+
+{
+  "firstName": "Rachid",
+  "lastName": "El Allali",
+  "id": "1d63ab75-dc93-40a8-ad36-0f4b5d6aff7b"
+}
+
+###
+POST http://0.0.0.0:8080/persons
+Content-Type: application/json
+
+{
+  "firstName": "Dizzy",
+  "lastName": "Dross",
+  "id": "4913a2dd-1694-43a0-a04d-c49b1a3cb31c"
+}
+
+###
+GET http://0.0.0.0:8080/persons
+Accept: application/json
+
+###
+GET http://0.0.0.0:8080/persons/4913a2dd-1694-43a0-a04d-c49b1a3cb31c
+Accept: application/json
+
+###
+DELETE http://0.0.0.0:8080/persons/1d63ab75-dc93-40a8-ad36-0f4b5d6aff7b
+Accept: application/json
