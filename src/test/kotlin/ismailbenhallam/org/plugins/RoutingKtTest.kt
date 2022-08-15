@@ -1,6 +1,7 @@
 package ismailbenhallam.org.plugins
 
 import io.ktor.client.call.body
+import io.ktor.client.request.basicAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -22,10 +23,12 @@ class RoutingKtTest {
         application {
             configureRouting()
             configureSerialization()
+            configureSecurity()
         }
 
         val person = Person("FirstName", "LASTNAME")
         client.post("/persons") {
+            basicAuth("admin", "admin")
             contentType(ContentType.Application.Json)
 //            setBody(person)
             setBody(Json.encodeToString(person))

@@ -6,6 +6,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -25,40 +26,45 @@ private fun Routing.personRouting() {
     val service = PersonService()
 
     route("/persons") {
-        get {
-            call.respond(service.getAll())
-        }
-
-        get("{id}") {
-            val id =
-                call.parameters["id"]!!
-            try {
-                val person =
-                    service.get(id) ?: return@get call.respondError("No person with id '$id'", HttpStatusCode.NotFound)
-                call.respond(person)
-            } catch (exception: Exception) {
-                call.respondError("Incorrect id format", HttpStatusCode.BadRequest)
+        authenticate("auth-basic") {
+            get {
+                call.respond(service.getAll())
             }
-        }
 
-        post {
-            val person = call.receive(Person::class)
-            service.add(person)
-            call.respondSuccessfully(
-                "Person saved",
-                HttpStatusCode.Created,
-                mapOf(HttpHeaders.Location to "${call.request.path()}/${person.id}")
-            )
-        }
+            get("{id}") {
+                val id =
+                    call.parameters["id"]!!
+                try {
+                    val person =
+                        service.get(id) ?: return@get call.respondError(
+                            "No person with id '$id'",
+                            HttpStatusCode.NotFound
+                        )
+                    call.respond(person)
+                } catch (exception: Exception) {
+                    call.respondError("Incorrect id format", HttpStatusCode.BadRequest)
+                }
+            }
 
-        delete("{id}") {
-            val id =
-                call.parameters["id"]!!
-            service.remove(id) ?: return@delete call.respondError(
-                "No Person found with id $id",
-                HttpStatusCode.NotFound
-            )
-            call.respondSuccessfully("Person deleted", HttpStatusCode.Accepted)
+            post {
+                val person = call.receive(Person::class)
+                service.add(person)
+                call.respondSuccessfully(
+                    "Person saved",
+                    HttpStatusCode.Created,
+                    mapOf(HttpHeaders.Location to "${call.request.path()}/${person.id}")
+                )
+            }
+
+            delete("{id}") {
+                val id =
+                    call.parameters["id"]!!
+                service.remove(id) ?: return@delete call.respondError(
+                    "No Person found with id $id",
+                    HttpStatusCode.NotFound
+                )
+                call.respondSuccessfully("Person deleted", HttpStatusCode.Accepted)
+            }
         }
     }
 }
