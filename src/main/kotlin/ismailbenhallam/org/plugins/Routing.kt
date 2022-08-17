@@ -1,5 +1,6 @@
 package ismailbenhallam.org.plugins
 
+import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -8,9 +9,12 @@ import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondFile
 import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -21,12 +25,25 @@ import io.ktor.server.routing.routing
 import ismailbenhallam.org.models.Person
 import ismailbenhallam.org.responses.ResponseEntity
 import ismailbenhallam.org.services.PersonService
+import java.io.File
 
 fun Application.configureRouting() {
     install(IgnoreTrailingSlash)
+    install(AutoHeadResponse)
     routing {
         route("/api") {
             personRouting()
+        }
+        get("/") {
+            val file = File(javaClass.classLoader.getResource("hello.png")!!.file)
+            call.response.header(
+                HttpHeaders.ContentDisposition,
+                ContentDisposition.Inline
+                    .withParameter(ContentDisposition.Parameters.FileName, "hello.png")
+                    .withParameter(ContentDisposition.Parameters.Size, file.length().toString())
+                    .toString()
+            )
+            call.respondFile(file)
         }
     }
 }
