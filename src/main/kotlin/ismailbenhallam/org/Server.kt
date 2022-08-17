@@ -6,6 +6,7 @@ import ismailbenhallam.org.plugins.configureMonitoring
 import ismailbenhallam.org.plugins.configureRouting
 import ismailbenhallam.org.plugins.configureSecurity
 import ismailbenhallam.org.plugins.configureSerialization
+import ismailbenhallam.org.plugins.configureShutdownUrl
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
@@ -13,6 +14,7 @@ fun main() {
         configureSerialization()
         configureSecurity()
         configureRouting()
+        configureShutdownUrl()
     }.start(wait = true)
 }
 
