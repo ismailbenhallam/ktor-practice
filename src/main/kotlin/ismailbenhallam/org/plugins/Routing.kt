@@ -7,10 +7,17 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.*
+import io.ktor.server.routing.IgnoreTrailingSlash
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import ismailbenhallam.org.models.Person
 import ismailbenhallam.org.responses.ResponseEntity
 import ismailbenhallam.org.services.PersonService
@@ -18,11 +25,13 @@ import ismailbenhallam.org.services.PersonService
 fun Application.configureRouting() {
     install(IgnoreTrailingSlash)
     routing {
-        personRouting()
+        route("/api") {
+            personRouting()
+        }
     }
 }
 
-private fun Routing.personRouting() {
+private fun Route.personRouting() {
     val service = PersonService()
 
     route("/persons") {
@@ -36,13 +45,10 @@ private fun Routing.personRouting() {
                     call.parameters["id"]!!
                 try {
                     val person =
-                        service.get(id) ?: return@get call.respondError(
-                            "No person with id '$id'",
-                            HttpStatusCode.NotFound
-                        )
+                        service.get(id)!!  // caught bellow
                     call.respond(person)
                 } catch (exception: Exception) {
-                    call.respondError("Incorrect id format", HttpStatusCode.BadRequest)
+                    throw NotFoundException("No person with id '$id'")
                 }
             }
 
@@ -59,10 +65,7 @@ private fun Routing.personRouting() {
             delete("{id}") {
                 val id =
                     call.parameters["id"]!!
-                service.remove(id) ?: return@delete call.respondError(
-                    "No Person found with id $id",
-                    HttpStatusCode.NotFound
-                )
+                service.remove(id) ?: throw NotFoundException("No Person found with id $id")
                 call.respondSuccessfully("Person deleted", HttpStatusCode.Accepted)
             }
         }
@@ -80,7 +83,4 @@ private suspend fun ApplicationCall.respondSuccessfully(
     respond(status, ResponseEntity(message, status.value))
 }
 
-private suspend fun ApplicationCall.respondError(message: String, status: HttpStatusCode) {
-    respond(status, ResponseEntity(message, status.value))
-}
 

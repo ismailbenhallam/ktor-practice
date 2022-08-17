@@ -2,6 +2,7 @@ package ismailbenhallam.org
 
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import ismailbenhallam.org.plugins.configureExceptionsHandler
 import ismailbenhallam.org.plugins.configureMonitoring
 import ismailbenhallam.org.plugins.configureRouting
 import ismailbenhallam.org.plugins.configureSecurity
@@ -15,6 +16,7 @@ fun main() {
         configureSecurity()
         configureRouting()
         configureShutdownUrl()
+        configureExceptionsHandler()
     }.start(wait = true)
 }
 
