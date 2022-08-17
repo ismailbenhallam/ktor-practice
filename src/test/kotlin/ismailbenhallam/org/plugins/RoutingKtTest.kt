@@ -7,6 +7,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import ismailbenhallam.org.requests.PersonRequest
 import ismailbenhallam.org.responses.ResponseEntity
@@ -21,19 +22,10 @@ class RoutingKtTest {
 
     @Test
     fun testPostPerson() = testApplication {
-        application {
-            configureRouting()
-            configureSerialization()
-            configureSecurity()
-        }
+        prepare()
 
         val person = PersonRequest("FirstName", "LASTNAME")
-        client.post("/api/persons") {
-            basicAuth("admin", "admin")
-            contentType(ContentType.Application.Json)
-//            setBody(person)
-            setBody(Json.encodeToString(person))
-        }.apply {
+        postPerson(person).apply {
             assertEquals(HttpStatusCode.Created, status)
             body/*<ResponseEntity>*/<String>()
                 .let {
@@ -48,20 +40,10 @@ class RoutingKtTest {
 
     @Test
     fun testPostPerson_withNullFirstName() = testApplication {
-        application {
-            configureRouting()
-            configureSerialization()
-            configureRequestValidation()
-            configureSecurity()
-            configureExceptionsHandler()
-        }
+        prepare()
 
         val person = PersonRequest(null, "name")
-        client.post("/api/persons") {
-            contentType(ContentType.Application.Json)
-            basicAuth("admin", "admin")
-            setBody(Json.encodeToString(person))
-        }.apply {
+        postPerson(person).apply {
             assertEquals(HttpStatusCode.BadRequest, status)
             body<String>()
                 .let {
@@ -77,20 +59,10 @@ class RoutingKtTest {
 
     @Test
     fun testPostPerson_withEmptyLastName() = testApplication {
-        application {
-            configureRouting()
-            configureSerialization()
-            configureRequestValidation()
-            configureSecurity()
-            configureExceptionsHandler()
-        }
+        prepare()
 
         val person = PersonRequest("FirstName", "")
-        client.post("/api/persons") {
-            contentType(ContentType.Application.Json)
-            basicAuth("admin", "admin")
-            setBody(Json.encodeToString(person))
-        }.apply {
+        postPerson(person).apply {
             assertEquals(HttpStatusCode.BadRequest, status)
             body<String>()
                 .let {
@@ -101,6 +73,24 @@ class RoutingKtTest {
                         charSequence = it.message,
                         regex = Regex.fromLiteral("LastName").apply { options.plus(RegexOption.IGNORE_CASE) })
                 }
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.postPerson(person: PersonRequest) =
+        client.post("/api/persons") {
+            basicAuth("admin", "admin")
+            contentType(ContentType.Application.Json)
+    //            setBody(person)
+            setBody(Json.encodeToString(person))
+        }
+
+    private fun ApplicationTestBuilder.prepare() {
+        application {
+            configureRouting()
+            configureSerialization()
+            configureRequestValidation()
+            configureSecurity()
+            configureExceptionsHandler()
         }
     }
 }
