@@ -4,6 +4,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import ismailbenhallam.org.plugins.configureExceptionsHandler
 import ismailbenhallam.org.plugins.configureMonitoring
+import ismailbenhallam.org.plugins.configureRequestValidation
 import ismailbenhallam.org.plugins.configureRouting
 import ismailbenhallam.org.plugins.configureSecurity
 import ismailbenhallam.org.plugins.configureSerialization
@@ -14,6 +15,7 @@ fun main() {
         configureMonitoring()
         configureSerialization()
         configureSecurity()
+        configureRequestValidation()
         configureRouting()
         configureShutdownUrl()
         configureExceptionsHandler()

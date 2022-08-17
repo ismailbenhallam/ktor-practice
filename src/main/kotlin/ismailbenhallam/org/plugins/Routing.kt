@@ -22,7 +22,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import ismailbenhallam.org.models.Person
+import ismailbenhallam.org.requests.PersonRequest
 import ismailbenhallam.org.responses.ResponseEntity
 import ismailbenhallam.org.services.PersonService
 import java.io.File
@@ -70,7 +70,8 @@ private fun Route.personRouting() {
             }
 
             post {
-                val person = call.receive(Person::class)
+                val personRequest = call.receive(PersonRequest::class)
+                val person = personRequest.toPerson()
                 service.add(person)
                 call.respondSuccessfully(
                     "Person saved",

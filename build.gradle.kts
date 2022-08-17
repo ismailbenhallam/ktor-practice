@@ -11,7 +11,7 @@ plugins {
 group = "ismailbenhallam.org"
 version = "0.0.1"
 application {
-    mainClass.set("ismailbenhallam.org.ServerKt")
+    mainClass.set("ismailbenhallam.org.KtorKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -32,6 +32,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-status-pages:$ktor_version")
     implementation("io.ktor:ktor-server-auto-head-response:$ktor_version")
+    implementation("io.ktor:ktor-server-request-validation:$ktor_version")
 
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")

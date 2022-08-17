@@ -6,6 +6,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import ismailbenhallam.org.responses.ResponseEntity
@@ -20,13 +21,15 @@ fun Application.configureExceptionsHandler() {
             call.application.environment.log.error(exception.message)
             call.sendResponseEntity(exception, HttpStatusCode.BadRequest)
         }
+        exception<RequestValidationException> { call, exception ->
+            call.application.environment.log.error(exception.message)
+            call.application.environment.log.error(exception.reasons.joinToString())
+            call.sendResponseEntity(BadRequestException(exception.reasons.joinToString()), HttpStatusCode.BadRequest)
+        }
         exception<Throwable> { call, exception ->
             call.application.environment.log.info(exception.message)
             call.application.environment.log.debug(exception.stackTrace.joinToString())
-            call.respond(
-                message = ResponseEntity("Internal server error", HttpStatusCode.InternalServerError.value),
-                status = HttpStatusCode.InternalServerError
-            )
+            call.sendResponseEntity(Throwable("Internal Server Error"), HttpStatusCode.InternalServerError)
         }
 
         status(HttpStatusCode.NotFound) { call, status ->
@@ -36,7 +39,7 @@ fun Application.configureExceptionsHandler() {
     }
 }
 
-private suspend fun ApplicationCall.sendResponseEntity(exception: Exception, status: HttpStatusCode) {
+private suspend fun ApplicationCall.sendResponseEntity(exception: Throwable, status: HttpStatusCode) {
     respond(
         message = ResponseEntity(exception.message ?: status.description, status.value),
         status = status
