@@ -31,8 +31,10 @@ fun Application.configureRouting() {
     install(IgnoreTrailingSlash)
     install(AutoHeadResponse)
     routing {
-        route("/api") {
-            personRouting()
+        authenticate("auth-basic") {
+            route("/api") {
+                personRouting()
+            }
         }
         get("/") {
             val file = File(javaClass.classLoader.getResource("hello.png")!!.file)
@@ -52,40 +54,38 @@ private fun Route.personRouting() {
     val service = PersonService()
 
     route("/persons") {
-        authenticate("auth-basic") {
-            get {
-                call.respond(service.getAll())
-            }
+        get {
+            call.respond(service.getAll())
+        }
 
-            get("{id}") {
-                val id =
-                    call.parameters["id"]!!
-                try {
-                    val person =
-                        service.get(id)!!  // caught bellow
-                    call.respond(person)
-                } catch (exception: Exception) {
-                    throw NotFoundException("No person with id '$id'")
-                }
+        get("{id}") {
+            val id =
+                call.parameters["id"]!!
+            try {
+                val person =
+                    service.get(id)!!  // caught bellow
+                call.respond(person)
+            } catch (exception: Exception) {
+                throw NotFoundException("No person with id '$id'")
             }
+        }
 
-            post {
-                val personRequest = call.receive(PersonRequest::class)
-                val person = personRequest.toPerson()
-                service.add(person)
-                call.respondSuccessfully(
-                    "Person saved",
-                    HttpStatusCode.Created,
-                    mapOf(HttpHeaders.Location to "${call.request.path()}/${person.id}")
-                )
-            }
+        post {
+            val personRequest = call.receive(PersonRequest::class)
+            val person = personRequest.toPerson()
+            service.add(person)
+            call.respondSuccessfully(
+                "Person saved",
+                HttpStatusCode.Created,
+                mapOf(HttpHeaders.Location to "${call.request.path()}/${person.id}")
+            )
+        }
 
-            delete("{id}") {
-                val id =
-                    call.parameters["id"]!!
-                service.remove(id) ?: throw NotFoundException("No Person found with id $id")
-                call.respondSuccessfully("Person deleted", HttpStatusCode.Accepted)
-            }
+        delete("{id}") {
+            val id =
+                call.parameters["id"]!!
+            service.remove(id) ?: throw NotFoundException("No Person found with id $id")
+            call.respondSuccessfully("Person deleted", HttpStatusCode.Accepted)
         }
     }
 }

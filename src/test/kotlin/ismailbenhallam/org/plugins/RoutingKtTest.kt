@@ -2,6 +2,7 @@ package ismailbenhallam.org.plugins
 
 import io.ktor.client.call.body
 import io.ktor.client.request.basicAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -9,19 +10,20 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import ismailbenhallam.org.models.Person
 import ismailbenhallam.org.requests.PersonRequest
 import ismailbenhallam.org.responses.ResponseEntity
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RoutingKtTest {
 
     @Test
-    fun testPostPerson() = testApplication {
+    fun `POST Person`() = testApplication {
         prepare()
 
         val person = PersonRequest("FirstName", "LASTNAME")
@@ -39,39 +41,36 @@ class RoutingKtTest {
     }
 
     @Test
-    fun testPostPerson_withNullFirstName() = testApplication {
+    fun `GET all persons`() = testApplication {
         prepare()
 
-        val person = PersonRequest(null, "name")
-        postPerson(person).apply {
-            assertEquals(HttpStatusCode.BadRequest, status)
-            body<String>()
+        client.get("/api/persons") {
+            basicAuth("admin", "admin")
+        }.apply {
+            assertEquals(HttpStatusCode.OK, status)
+            body/*<ResponseEntity>*/<String>()
                 .let {
-                    Json.decodeFromString<ResponseEntity>(it)
+                    Json.decodeFromString<Array<Person>>(it)
                 }
                 .let {
-                    assertContains(
-                        charSequence = it.message,
-                        regex = Regex.fromLiteral("FirstName").apply { options.plus(RegexOption.IGNORE_CASE) })
+                    assertTrue { it.isEmpty() }
                 }
         }
-    }
 
-    @Test
-    fun testPostPerson_withEmptyLastName() = testApplication {
-        prepare()
-
-        val person = PersonRequest("FirstName", "")
-        postPerson(person).apply {
-            assertEquals(HttpStatusCode.BadRequest, status)
-            body<String>()
+        val person = PersonRequest("FirstName", "LASTNAME")
+        postPerson(person)
+        client.get("/api/persons") {
+            basicAuth("admin", "admin")
+        }.apply {
+            assertEquals(HttpStatusCode.OK, status)
+            body/*<ResponseEntity>*/<String>()
                 .let {
-                    Json.decodeFromString<ResponseEntity>(it)
+                    Json.decodeFromString<Array<Person>>(it)
                 }
                 .let {
-                    assertContains(
-                        charSequence = it.message,
-                        regex = Regex.fromLiteral("LastName").apply { options.plus(RegexOption.IGNORE_CASE) })
+                    assertTrue { it.size == 1 }
+                    assertTrue { it[0].lastName == person.lastName }
+                    assertTrue { it[0].firstName == person.firstName }
                 }
         }
     }
@@ -80,17 +79,8 @@ class RoutingKtTest {
         client.post("/api/persons") {
             basicAuth("admin", "admin")
             contentType(ContentType.Application.Json)
-    //            setBody(person)
+            //            setBody(person)
             setBody(Json.encodeToString(person))
         }
 
-    private fun ApplicationTestBuilder.prepare() {
-        application {
-            configureRouting()
-            configureSerialization()
-            configureRequestValidation()
-            configureSecurity()
-            configureExceptionsHandler()
-        }
-    }
 }
