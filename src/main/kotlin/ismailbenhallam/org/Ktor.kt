@@ -10,8 +10,13 @@ import ismailbenhallam.org.plugins.configureSecurity
 import ismailbenhallam.org.plugins.configureSerialization
 import ismailbenhallam.org.plugins.configureShutdownUrl
 
+private const val DEFAULT_PORT = 8080
+
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+    embeddedServer(
+        Netty, host = "0.0.0.0",
+        port = System.getProperty("port")?.toInt() ?: DEFAULT_PORT,
+    ) {
         configureMonitoring()
         configureSerialization()
         configureSecurity()
