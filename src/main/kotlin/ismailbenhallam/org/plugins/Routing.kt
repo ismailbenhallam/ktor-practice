@@ -8,6 +8,11 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.http.content.defaultResource
+import io.ktor.server.http.content.resource
+import io.ktor.server.http.content.resources
+import io.ktor.server.http.content.static
+import io.ktor.server.http.content.staticBasePackage
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.request.path
@@ -41,15 +46,24 @@ fun Application.configureRouting() {
             }
         }
         get("/") {
-            val file = File(javaClass.classLoader.getResource("hello.png")!!.file)
+            val file = File(javaClass.classLoader.getResource("assets/hello.png")!!.file)
             call.response.header(
                 HttpHeaders.ContentDisposition,
                 ContentDisposition.Inline
-                    .withParameter(ContentDisposition.Parameters.FileName, "hello.png")
+                    .withParameter(ContentDisposition.Parameters.FileName, "assets/hello.png")
                     .withParameter(ContentDisposition.Parameters.Size, file.length().toString())
                     .toString()
             )
             call.respondFile(file)
+        }
+        static("/assets") {
+            staticBasePackage = "assets"
+            defaultResource("hello.png")
+            resources(".")
+            // This is optional, we can use it to give a virtual (easier) name to our resources
+            for (i in 1..3) {
+                resource("$i", "img$i.jpeg")
+            }
         }
     }
 }
