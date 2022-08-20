@@ -2,6 +2,7 @@ package ismailbenhallam.org.events
 
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.Application
+import io.ktor.server.application.log
 
 val UnauthorizedEvent = EventDefinition<String>()
 
@@ -12,7 +13,7 @@ fun Application.onUnauthorizedEvent() {
         if (failingAccessTracked.containsKey(it)) {
             failingAccessTracked[it] = failingAccessTracked[it]!! + 1
             if (failingAccessTracked[it]!! > 2)
-                this@onUnauthorizedEvent.environment.log.error("A user ($it) tried to access the API ${failingAccessTracked[it]}")
+                this@onUnauthorizedEvent.log.error("A user ($it) tried to access the API ${failingAccessTracked[it]}")
         } else {
             failingAccessTracked[it] = 1
         }

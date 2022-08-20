@@ -2,6 +2,7 @@ package ismailbenhallam.org.events
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
+  import io.ktor.server.application.log
 
 fun Application.onApplicationStoppedEvent() {
     // This
@@ -10,6 +11,6 @@ fun Application.onApplicationStoppedEvent() {
     }*/
     // Could be replaced with
     environment.monitor.subscribe(ApplicationStopped) {
-        it.environment.log.info("See u later ;)")
+        it.log.info("See u later ;)")
     }
 }
