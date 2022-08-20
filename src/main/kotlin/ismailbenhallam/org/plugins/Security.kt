@@ -10,6 +10,7 @@ import io.ktor.server.auth.UserPasswordCredential
 import io.ktor.server.auth.basic
 import io.ktor.server.auth.form
 import io.ktor.util.getDigestFunction
+import ismailbenhallam.org.events.UnauthorizedEvent
 
 private val DIGEST_FUNCTION = getDigestFunction("SHA-256") { "salt-function${it.length}" }
 private val HASHED_USER_TABLE = UserHashedTableAuth(
@@ -35,5 +36,9 @@ fun Application.configureSecurity() {
 
 private fun validate(): suspend ApplicationCall.(UserPasswordCredential) -> Principal? =
     { credential ->
-        HASHED_USER_TABLE.authenticate(credential)
+        val authenticate = HASHED_USER_TABLE.authenticate(credential)
+        if (authenticate == null) {
+            application.environment.monitor.raise(UnauthorizedEvent, credential.name)
+        }
+        authenticate
     }
